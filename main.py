@@ -212,10 +212,23 @@ def launch_browser(profile, chrome_path=None, driver_path=None, headless=False):
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     options.add_experimental_option("useAutomationExtension", False)
 
+    log_path = str(user_data_dir / "chromedriver.log")
+    service_kwargs = {"log_output": log_path, "service_args": ["--verbose"]}
     if driver_path:
-        driver = webdriver.Chrome(options=options, service=ChromeService(executable_path=driver_path))
-    else:
-        driver = webdriver.Chrome(options=options)
+        service_kwargs["executable_path"] = driver_path
+    print(f"[launch] chrome={chrome_path} driver={driver_path or 'selenium-manager'} udd={user_data_dir} proxy={proxy_arg} log={log_path}", flush=True)
+    try:
+        driver = webdriver.Chrome(options=options, service=ChromeService(**service_kwargs))
+    except Exception as launch_err:
+        tail = ""
+        try:
+            with open(log_path, "r", encoding="utf-8", errors="replace") as lf:
+                tail = lf.read()[-3000:]
+        except Exception:
+            pass
+        if tail:
+            raise type(launch_err)(f"{launch_err}\n--- chromedriver.log (尾部) ---\n{tail}") from launch_err
+        raise
 
     tz = (profile.get("timezone") or "").strip()
     if tz:
