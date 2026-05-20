@@ -605,7 +605,11 @@ class App(tk.Tk):
                 except Exception:
                     pass
             except Exception as e:
-                self.after(0, lambda: messagebox.showerror(f"启动失败 [{profile.get('name')}]", str(e)))
+                err_msg = f"{type(e).__name__}: {e}"
+                import traceback as _tb
+                err_full = _tb.format_exc()
+                print(err_full, flush=True)
+                self.after(0, lambda m=err_msg: messagebox.showerror(f"启动失败 [{profile.get('name')}]", m))
             finally:
                 if relay:
                     relay.stop()
