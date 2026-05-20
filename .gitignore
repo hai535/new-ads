@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+*.pyo
+launcher/FpBrowser.exe
+.DS_Store
